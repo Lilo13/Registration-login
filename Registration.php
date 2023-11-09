@@ -1,54 +1,118 @@
-<!DOCTYPE HTML>
-<html>
-    <head> Fast Travel Agency</head>
-    <body>
+<?php
+session_start();
 
-        <div>
-            <?php
-            if (isset($_POST['create'])){
-                echo "User submitted.";
+$errors = [];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    require_once "config.php";
+
+    $fullName = $_POST["fullname"];
+    $userName = $_POST["username"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $passwordRepeat = $_POST["repeat_password"];
+
+    if (empty($fullName) || empty($userName) || empty($email) || empty($password) || empty($passwordRepeat)) {
+        $errors[] = "All fields are required.";
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = "Email is not valid.";
+    }
+
+    if (strlen($password) < 8) {
+        $errors[] = "Password must be at least 8 characters long.";
+    }
+
+    if ($password !== $passwordRepeat) {
+        $errors[] = "Passwords do not match.";
+    }
+
+    $sql = "SELECT * FROM personal_info WHERE email = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_store_result($stmt);
+
+    if (mysqli_stmt_num_rows($stmt) > 0) {
+        $errors[] = "Email already exists.";
+    }
+
+    if (empty($errors)) {
+        $sql = "INSERT INTO personal_info (fullname, username, email, password) VALUES (?, ?, ?, ?)";
+        $stmt = mysqli_prepare($conn, $sql);
+
+        if (mysqli_stmt_bind_param($stmt, "ssss", $fullName, $userName, $email, $password)) {
+            if (mysqli_stmt_execute($stmt)) {
+                echo "<div class='alert alert-success'>You are registered successfully.</div>";
+            } else {
+                $errors[] = "Something went wrong.";
             }
-            ?>
-        </div>
-		
-        <p> Please fill in the sign up form to create an account.</p>
-        <div>
+        } else {
+            $errors[] = "Error preparing the statement.";
+        }
+    }
+    mysqli_close($conn);
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <?php
+        if (!empty($errors)) {
+            foreach ($errors as $error) {
+                echo "<div class='alert alert-danger'>$error</div>";
+            }
+        }
+        
+        ?>
         <form action="Registration.php" method="post">
-            <div class="container">
-                <hr>
-                <label for="username"><b> Enter Names </b></label>
-                <input type="text" placeholder="Enter Name" name="username" id="username" required>
-                <br>
-                    
-                <label for="fname"><b> First Name </b></label>
-                <input type="text" placeholder="First Name" name="fname" id="fname" required>
-                <br>
+            <h1>Registration Form</h1>
+            <p>To create an account, please fill in your information.</p>
 
-                <label for="lname"><b> Last Name </b></label>
-                <input type="text" placeholder="Last Name" name="lname" id="lname" required>
-                <br>
-
-                <label for="email"><b> Email </b></label>
-                <input type="text" placeholder="Enter Email" name="email" id="email" required>
-                <br>
-        
-                <label for="psw"><b> Password </b></label>
-                <input type="password" placeholder="Enter Password" name="psw" id="psw" required>
-                <br>
-        
-                <label for="psw"><b> Repeate Password </b></label>
-                <input type="password" placeholder="Repeate Password" name="psw-repeate" id="psw-repeate" required>
-                <hr>
-
-                <p> Thank you for registaring with Fast Travel Agency.</p>
-                <button type="submit"  class="registerbtn"> Register</button>
+            <div class="form-group">
+                <label for="fullname">Full Name:</label>
+                <input type="text" class="form-control" name="fullname" id="fullname" value="<?= isset($fullName) ? $fullName : '' ?>" required>
             </div>
 
-            <div class="container signin">
-                <br>
-                <p>Do you have an account already? <a href="#">Sign in</a>.</p>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" class="form-control" name="username" id="username" value="<?= isset($userName) ? $userName : '' ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" class="form-control" name="email" id="email" value="<?= isset($email) ? $email : '' ?>" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" class="form-control" name="password" id="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="repeat_password">Repeat Password:</label>
+                <input type="password" class="form-control" name="repeat_password" id="repeat_password" required>
+            </div>
+
+            <div class="form-btn">
+                <input type="submit" class="btn btn-primary" value="Register" name="submit">
             </div>
         </form>
+
+        <div>
+            <br>
+            <div><p>Already Registered? <a href="Login.php">Login Here</a></p></div>
+        </div>
     </div>
 </body>
 </html>
