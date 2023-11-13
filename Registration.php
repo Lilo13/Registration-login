@@ -63,8 +63,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Form</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.4.1/cosmo/bootstrap.min.css" rel="stylesheet" integrity="sha384-qdQEsAI45WFCO5QwXBelBe1rR9Nwiss4rGEqiszC+9olH1ScrLrMQr1KmDR964uZ" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
 </head>
+<style>
+    .wrapper{
+      width: 500px;
+      padding: 20px;
+    }
+    .wrapper h2 {text-align: center}
+    .wrapper form .form-group span {color: red;}
+</style>
 <body>
     <div class="container">
         <?php
@@ -75,8 +84,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
         
         ?>
+        <section class="container wrapper">
         <form action="Registration.php" method="post">
-            <h1>Registration Form</h1>
+            <h1 class="display-4 pt-3">Registration Form</h1>
             <p>To create an account, please fill in your information.</p>
 
             <div class="form-group">
@@ -95,6 +105,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <div class="form-group">
+                <label for="address">Enter Address:</label>
+                <input type="text" class="form-control" name="address" id="address" value="<?= isset($address) ? $address : '' ?>" required>
+            </div>
+
+            <div class="form-group">
                 <label for="password">Password:</label>
                 <input type="password" class="form-control" name="password" id="password" required>
             </div>
@@ -105,9 +120,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <div class="form-btn">
-                <input type="submit" class="btn btn-primary" value="Register" name="submit">
+            <input type="submit" class="btn btn-block btn-outline-primary" value="Register">
             </div>
         </form>
+        </section>
 
         <div>
             <br>
