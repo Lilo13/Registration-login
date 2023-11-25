@@ -118,7 +118,7 @@ if (isset($_GET["action"])) {
                                 <input type="text" name="pple_number" class="form-control" value="1">
                                 <input type="hidden" name="location" value="<?php echo $row['location']; ?>">
                                 <input type="hidden" name="price" value="<?php echo $row['price']; ?>">
-                                <input type="hidden" name="tour_id" value="<?php echo $row['tour_id']; ?>">
+                                <input type="hidden" name="tours_id" value="<?php echo $row['tour_id']; ?>">
                                 <input type="submit" name="add" style="margin-top: 5px;" class="btn btn-success" value="Add to Cart">
                             </div>
                         </form>
