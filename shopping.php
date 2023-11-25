@@ -2,7 +2,7 @@
 
 session_start();
 
-$conn = mysqli_connect(hostname: "localhost", username: "root", password: "", database: "fast_travel");
+$conn = mysqli_connect("localhost", "root", "", "fast_travel");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add"])) {
     if (isset($_SESSION["tours"])) {
@@ -149,7 +149,7 @@ if (isset($_GET["action"])) {
                 <td><?php echo isset($value["location"]) ? $value["location"]: ''; ?></td>
                 <td><?php echo $value["pple_number"]; ?></td>
                 <td><?php echo $value["price"]; ?></td>
-                <td><?php echo $value["pple_number"]; ?></td>
+                <td><?php echo $value["pple_number"] * $value["price"]; ?></td>
                 <td><a href="shopping.php?action=delete&tour_id=<?php echo $value["tour_id"]; ?>"><span class="text-danger"> Remove Item </span></a></td>
             </tr>
 
