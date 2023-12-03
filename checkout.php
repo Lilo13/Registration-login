@@ -11,21 +11,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["checkout"])) {
     $booking_id = uniqid();
 
     if (isset($_SESSION["tours"]) && is_array($_SESSION["tours"])) {
-        foreach ($_SESSION["tours"] as $key => $value) {
-            $tour_id = $value["tour_id"];
-            $pple_number = $value["pple_number"];
-            
-            // Update tour capacity in the database
-            $update_query = "UPDATE tours SET tour_capacity = tour_capacity - ? WHERE tour_id = ?";
-            $stmt = mysqli_prepare($conn, $update_query);
-            mysqli_stmt_bind_param($stmt, "ii", $pple_number, $tour_id);
-            $result = mysqli_stmt_execute($stmt);
-            
-            if (!$result) {
-                echo "Error updating tour capacity. Please contact support.";
-                error_log("Error updating record: " . mysqli_error($conn) . ". Query: " . $update_query);
+         // Start a transaction to ensure data consistency
+         mysqli_begin_transaction($conn);
+
+         try {
+            foreach ($_SESSION["tours"] as $key => $value) {
+                $tour_id = $value["tour_id"];
+                $pple_number = $value["pple_number"];
+                
+                // Update tour capacity in the database
+                $update_query = "UPDATE tours SET tour_capacity = tour_capacity - ? WHERE tour_id = ?";
+                $stmt = mysqli_prepare($conn, $update_query);
+                mysqli_stmt_bind_param($stmt, "ii", $pple_number, $tour_id);
+                $result = mysqli_stmt_execute($stmt);
+                
+                if (!$result) {
+                    throw new Exception("Error updating tour capacity. Please contact support.");
             }
-        }      
+        }
+        
+        // Insert booking data into the 'booking' table
+        $insert_booking_query = "INSERT INTO booking (booking_id, location, pple_number, total_amount) VALUES (?, ?, ?, ?)";
+        $stmt = mysqli_prepare($conn, $insert_booking_query);
+        mysqli_stmt_bind_param($stmt, "ssdi", $booking_id, $value['location'], $pple_number, $total);
+        $total = 0;
+        foreach ($_SESSION["tours"] as $key => $value) {
+            $total += $value['pple_number'] * $value["price"];
+        }
+        $result = mysqli_stmt_execute($stmt);
+        
+        if (!$result) {
+            throw new Exception("Error inserting booking data. Please contact support.");
+        }
+
+        // Commit the transaction
+        mysqli_commit($conn);
+        
         // Display the invoice on the checkout page
         echo <<<HTML
                 <!DOCTYPE html>
@@ -77,6 +98,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["checkout"])) {
 HTML;        
         // Clear shopping cart after checkout
         unset($_SESSION["tours"]);
+
+    } catch (Exception $e) {
+        mysqli_rollback($conn);
+
+        echo $e->getMessage();
+        error_log("Transaction failed: " . $e->getMessage());
+    }
     
     } else {
         // If no tours in the session
